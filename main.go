@@ -2,17 +2,24 @@ package main
 
 import (
 	"fmt"
+	"github.com/fileServer/utils"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func main() {
-	fileServer := http.FileServer(http.Dir("/static"))
-	http.Handle("/", fileServer)
+const StaticPrefix string = "static" + string(filepath.Separator) + "file" + string(filepath.Separator)
+const FilePrefix string = "/file/"
+const DirPrefix string = "/Dir/"
 
+func main() {
+	fileServer := http.FileServer(http.Dir(StaticPrefix))
+	prefixServer := http.StripPrefix(FilePrefix, fileServer)
+	http.Handle(FilePrefix, prefixServer)
 	http.HandleFunc("/index", fileListShow)
+	http.HandleFunc(DirPrefix, fileListShow)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
@@ -27,10 +34,12 @@ func fileListShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	path := r.URL.Path
-	if path == "/index" {
-		path = "static"
-	}
 	log.Println(path)
+	if path == "/index" {
+		path = StaticPrefix
+	} else if strings.HasPrefix(path, DirPrefix) {
+		path = strings.TrimPrefix(path, DirPrefix)
+	}
 	file, err := os.Open(path)
 	if err != nil {
 		log.Println("os.open error ", err)
@@ -49,15 +58,21 @@ func fileListShow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fileList := make([]string, 0)
-		for _, value := range dir {
-			nextPath := filepath.Join(path, string(filepath.Separator), value.Name())
-			if value.IsDir() {
-				nextPath += "/"
+		isDir := make([]bool, 0)
+		for _, subFile := range dir {
+			nextPath := filepath.Join(path, string(filepath.Separator), subFile.Name())
+			if subFile.IsDir() {
+				nextPath += string(filepath.Separator)
+			}
+			if subFile.IsDir() {
+				isDir = append(isDir, true)
+			} else {
+				nextPath = strings.TrimPrefix(nextPath, StaticPrefix)
+				isDir = append(isDir, false)
 			}
 			fileList = append(fileList, nextPath)
 		}
-		for _, p := range fileList {
-			fmt.Fprintln(w, p)
-		}
+		fmt.Println(fileList, isDir)
+		utils.WriteHyperlinkListToRespon(w, fileList, isDir)
 	}
 }
