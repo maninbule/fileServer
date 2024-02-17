@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/fileServer/utils"
 	"io"
 	"log"
 	"net/http"
@@ -30,7 +31,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	log.Println("上传的文件信息： ", header.Filename, header.Size)
 	buffer := make([]byte, 1024*1024)
 	writePath := pathDir + header.Filename
-	if isFileExisted(writePath) {
+	if utils.IsFileExisted(writePath) {
 		fmt.Fprintf(w, "文件已经存在")
 		return
 	}
@@ -52,15 +53,4 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		WFile.Write(buffer[:n])
 	}
 	fmt.Fprintf(w, "文件上传成功")
-}
-
-func isFileExisted(path string) bool {
-	_, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-		return false
-	}
-	return true
 }

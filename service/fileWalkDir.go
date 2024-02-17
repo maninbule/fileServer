@@ -62,29 +62,6 @@ func FileListShow(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func writeHyperlinkListToRespon(w http.ResponseWriter, pathList []string, isDir []bool) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Upload File</title>\n</head>\n<body>")
-	for i := 0; i < len(pathList); i++ {
-		path := pathList[i]
-		url := path
-		road := strings.Split(path, "/")
-		filename := road[len(road)-1]
-		if isDir[i] {
-			url = "/" + "Dir" + "/" + url + "/"
-			filename += "/"
-		} else {
-			url = "/" + "file" + "/" + url
-		}
-
-		fmt.Fprintf(w, "<a href=\"%s\">%s</a><br/>", url, filename)
-	}
-
-	upload := "<form action=\"/upload\" method=\"post\" enctype=\"multipart/form-data\">\n    <input type=\"file\" name=\"file\"><br>\n    <input type=\"submit\" value=\"Upload\"> <br>\n    <input type=\"hidden\" name=\"url\" value=\"{{ .URL }}\">\n</form>"
-	fmt.Fprintf(w, upload)
-	fmt.Fprintf(w, "</body>\n</html>")
-}
-
 func pathTohtml(pathList []string, isDir []bool) ([]string, []string) {
 	urls := make([]string, 0)
 	name := make([]string, 0)
@@ -111,15 +88,21 @@ func useTemplate(w http.ResponseWriter, urls []string, filename []string, curDir
 		log.Fatalf("模板引擎解析失败")
 		return
 	}
+	path := make([]string, 0)
+	for i := 0; i < len(filename); i++ {
+		path = append(path, curDir+filename[i])
+	}
 	data := struct {
 		Urls     []string
 		Filename []string
+		Path     []string
 		CurDir   string
 	}{
 		Urls:     urls,
 		Filename: filename,
 		CurDir:   curDir,
+		Path:     path,
 	}
-	fmt.Print(curDir)
+	fmt.Print(data)
 	tmpl.Execute(w, data)
 }

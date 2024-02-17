@@ -5,18 +5,26 @@
     <meta name="viewport" content="width=devie-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Hello</title>
+    <style>
+        .inline-elements {
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
     文件目录<br/>
     <p>当前文件夹: {{.CurDir}}<p>
     有以下内容:<br/>
-    <ul>
     {{range $index, $element := .Urls}}
-        <li>
+        <div>
+            <form action="/delete" method="post" style="display: inline-block;">
+                <input type="hidden" name="deletepath" value="{{index $.Path $index}}">
+                <button>删除</button>
+            </form>
             <a href="{{$element}}">{{index $.Filename $index}}</a>
-        </li>
+
+        </div>
     {{end}}
-    </ul>
     <h2>上传文件到该目录</h2>
     <form action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file"><br>

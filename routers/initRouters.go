@@ -17,6 +17,7 @@ func InitRouters() {
 	mux.HandleFunc("/index", service.FileListShow)
 	mux.HandleFunc(symbol.DirPrefix, service.FileListShow)
 	mux.Handle("/upload", middleware.LimitRequestBodyMiddleware(http.HandlerFunc(service.UploadFile)))
+	mux.HandleFunc("/delete", service.DeleteFile)
 	//mux.HandleFunc("/upload", service.UploadFile)
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
