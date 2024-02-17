@@ -13,13 +13,13 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "method not supported ")
 		return
 	}
-	err := r.ParseMultipartForm(10 << 20)
-	fmt.Println("上传文件的路径前缀 ", CurrentPath)
+	const maxUploadSize = 22<<20 + 512 // 12.5MB
+	err := r.ParseMultipartForm(maxUploadSize)
 	if err != nil {
-		fmt.Fprintf(w, "上传的文件过大")
+		fmt.Fprintf(w, "解析表出错")
 		return
 	}
-
+	fmt.Println("上传文件的路径前缀 ", CurrentPath)
 	file, header, err := r.FormFile("file")
 	defer file.Close()
 	if err != nil {
@@ -33,7 +33,6 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "文件已经存在")
 		return
 	}
-
 	WFile, err := os.OpenFile(writePath, os.O_CREATE|os.O_WRONLY, 0666)
 	defer WFile.Close()
 	if err != nil {
