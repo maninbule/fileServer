@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文件上传</title>
+</head>
+<body>
+<h2>Upload File</h2>
+<form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file"><br>
+    <input type="submit" value="Upload"> <br>
+    <input type="hidden" name="url" value="{{ .URL }}">
+</form>
+</body>
+</html>

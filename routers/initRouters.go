@@ -13,7 +13,7 @@ func InitRouters() {
 	http.Handle(symbol.FilePrefix, prefixServer)
 	http.HandleFunc("/index", service.FileListShow)
 	http.HandleFunc(symbol.DirPrefix, service.FileListShow)
-
+	http.HandleFunc("/upload", service.UploadFile)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatalf("服务启动失败 ", err)

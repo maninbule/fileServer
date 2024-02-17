@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var CurrentPath string = ""
+
 func FileListShow(w http.ResponseWriter, r *http.Request) {
 	log.Println("enter fileListShow")
 	if r.Method != "GET" {
@@ -22,6 +24,7 @@ func FileListShow(w http.ResponseWriter, r *http.Request) {
 	} else if strings.HasPrefix(path, symbol.DirPrefix) {
 		path = strings.TrimPrefix(path, symbol.DirPrefix)
 	}
+	CurrentPath = path
 	file, err := os.Open(path)
 	if err != nil {
 		log.Println("os.open error ", err)
@@ -44,9 +47,6 @@ func FileListShow(w http.ResponseWriter, r *http.Request) {
 		for _, subFile := range dir {
 			nextPath := path + subFile.Name()
 			if subFile.IsDir() {
-				nextPath += "/"
-			}
-			if subFile.IsDir() {
 				isDir = append(isDir, true)
 			} else {
 				nextPath = strings.TrimPrefix(nextPath, symbol.StaticPrefix)
@@ -61,16 +61,23 @@ func FileListShow(w http.ResponseWriter, r *http.Request) {
 
 func writeHyperlinkListToRespon(w http.ResponseWriter, pathList []string, isDir []bool) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprintf(w, "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Upload File</title>\n</head>\n<body>")
 	for i := 0; i < len(pathList); i++ {
 		path := pathList[i]
 		url := path
+		road := strings.Split(path, "/")
+		filename := road[len(road)-1]
 		if isDir[i] {
-			url = "/" + "Dir" + "/" + url
+			url = "/" + "Dir" + "/" + url + "/"
+			filename += "/"
 		} else {
 			url = "/" + "file" + "/" + url
 		}
-		road := strings.Split(path, "/")
-		filename := road[len(road)-1]
+
 		fmt.Fprintf(w, "<a href=\"%s\">%s</a><br/>", url, filename)
 	}
+
+	upload := "<form action=\"/upload\" method=\"post\" enctype=\"multipart/form-data\">\n    <input type=\"file\" name=\"file\"><br>\n    <input type=\"submit\" value=\"Upload\"> <br>\n    <input type=\"hidden\" name=\"url\" value=\"{{ .URL }}\">\n</form>"
+	fmt.Fprintf(w, upload)
+	fmt.Fprintf(w, "</body>\n</html>")
 }
