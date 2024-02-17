@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/fileServer/type/symbol"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -55,7 +56,9 @@ func FileListShow(w http.ResponseWriter, r *http.Request) {
 			fileList = append(fileList, nextPath)
 		}
 		fmt.Println(fileList, isDir)
-		writeHyperlinkListToRespon(w, fileList, isDir)
+		//writeHyperlinkListToRespon(w, fileList, isDir)
+		pathList, filename := pathTohtml(fileList, isDir)
+		useTemplate(w, pathList, filename, CurrentPath)
 	}
 }
 
@@ -80,4 +83,43 @@ func writeHyperlinkListToRespon(w http.ResponseWriter, pathList []string, isDir 
 	upload := "<form action=\"/upload\" method=\"post\" enctype=\"multipart/form-data\">\n    <input type=\"file\" name=\"file\"><br>\n    <input type=\"submit\" value=\"Upload\"> <br>\n    <input type=\"hidden\" name=\"url\" value=\"{{ .URL }}\">\n</form>"
 	fmt.Fprintf(w, upload)
 	fmt.Fprintf(w, "</body>\n</html>")
+}
+
+func pathTohtml(pathList []string, isDir []bool) ([]string, []string) {
+	urls := make([]string, 0)
+	name := make([]string, 0)
+	for i := 0; i < len(pathList); i++ {
+		path := pathList[i]
+		url := path
+		road := strings.Split(path, "/")
+		filename := road[len(road)-1]
+		if isDir[i] {
+			url = "/" + "Dir" + "/" + url + "/"
+			filename += "/"
+		} else {
+			url = "/" + "file" + "/" + url
+		}
+		urls = append(urls, url)
+		name = append(name, filename)
+	}
+	return urls, name
+}
+
+func useTemplate(w http.ResponseWriter, urls []string, filename []string, curDir string) {
+	tmpl, err := template.ParseFiles("static/template/index.html")
+	if err != nil {
+		log.Fatalf("模板引擎解析失败")
+		return
+	}
+	data := struct {
+		Urls     []string
+		Filename []string
+		CurDir   string
+	}{
+		Urls:     urls,
+		Filename: filename,
+		CurDir:   curDir,
+	}
+	fmt.Print(curDir)
+	tmpl.Execute(w, data)
 }

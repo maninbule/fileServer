@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=devie-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Hello</title>
+</head>
+<body>
+    文件目录<br/>
+    <p>当前文件夹: {{.CurDir}}<p>
+    有以下内容:<br/>
+    <ul>
+    {{range $index, $element := .Urls}}
+        <li>
+            <a href="{{$element}}">{{index $.Filename $index}}</a>
+        </li>
+    {{end}}
+    </ul>
+    <h2>上传文件到该目录</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file"><br>
+        <input type="submit" value="Upload"> <br>
+        <input type="hidden" name="saveDir" value="{{.CurDir}}">
+    </form>
+</body>
+<html>

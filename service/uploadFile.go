@@ -21,6 +21,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("上传文件的路径前缀 ", CurrentPath)
 	file, header, err := r.FormFile("file")
+	pathDir := r.Form.Get("saveDir")
 	defer file.Close()
 	if err != nil {
 		fmt.Fprintf(w, "获取不到文件")
@@ -28,7 +29,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("上传的文件信息： ", header.Filename, header.Size)
 	buffer := make([]byte, 1024*1024)
-	writePath := CurrentPath + header.Filename
+	writePath := pathDir + header.Filename
 	if isFileExisted(writePath) {
 		fmt.Fprintf(w, "文件已经存在")
 		return
